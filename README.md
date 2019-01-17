@@ -76,3 +76,12 @@ curl -v http://localhost:8888/trending
 
 ```
 
+## Post-mortem
+
+Preprocessing seems to be the name of the game here. I kept finding new
+permutations of ngrams that were increasingly difficult to mark as duplicates.
+At the time of this writing, "president donald trump" and "president trump"
+both show up as trending topics, but I ran out of time for detecting these as
+duplicates. Hopefully this is enough to at least scratch the surface of
+document classification. Thanks for reviewing!
+
