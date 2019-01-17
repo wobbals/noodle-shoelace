@@ -9,6 +9,7 @@ const request = require('request-promise-native');
 const xmljs = require('xml-js');
 const debug = require('debug')('helper:transmogrifier');
 const nlp = require('wink-nlp-utils');
+const striptags = require('striptags');
 
 /**
  * Fetches an RSS URL and returns its parsed document
@@ -43,7 +44,9 @@ let collectDocuments = async function(rssFeedURLs) {
           title: rssItem.title._text || rssItem.title._cdata,
           description: rssItem.description._text || rssItem.description._cdata
         };
-        debug(`collectDocuments: doc=${JSON.stringify(doc)}`)
+        // Sneaky feeds putting HTML into description. BANISH.
+        doc.description = striptags(doc.description);
+        //debug(`collectDocuments: doc=${JSON.stringify(doc)}`)
         result.push(doc);
       }
     }
@@ -53,6 +56,11 @@ let collectDocuments = async function(rssFeedURLs) {
   return result;
 }
 
+/**
+ * A basic tokenizer atop wimp-nlp-utils. There's a lot of headroom here for
+ * growth into better understanding about tokens. What you see here is just
+ * what seemed to work best for the data seen during testing.
+ */
 let tokenizeAndFilter = function(string) {
   let filteredString = nlp.string.removeElisions(string);
   filteredString = nlp.string.lowerCase(filteredString);
@@ -122,6 +130,7 @@ let calculateTopicWeight = function(weight) {
   let tokensNoStops = nlp.tokens.removeWords(weight.gram);
   weight.stopWeight = (tokensNoStops.length / weight.ngramSize);
   let score = weight.occurrences * weight.ngramSize * weight.stopWeight;
+  //let score = Math.pow(weight.occurrences *  weight.ngramSize, weight.stopWeight);
 
   // punish single-letter topics until we have a better solution for filtering
   // possessive concatenations (example: "trump's")
@@ -141,7 +150,7 @@ let checkGramEligibility = function(topics, gram) {
   for (let i in topics) {
     let topic = topics[i];
     let longerTopic = topic.length > gram.length ? topic : gram;
-    if (topic.indexOf(gram) > 0 || gram.indexOf(topic) > 0) {
+    if (topic.indexOf(gram) >= 0 || gram.indexOf(topic) >= 0) {
       topics.splice(i, 1, longerTopic);
       return false;
     }
@@ -159,21 +168,24 @@ let detectTrends = function(documents, ntrends) {
   let wordWeights = {};
   let ngramMax = 3;
 
+  // grok all the documents found in different feeds"
   for (let i in documents) {
     let doc = documents[i];
     processTokens(wordWeights, doc.title, ngramMax);
-    // We could try to add this if there's time to filter out HTML from cdata.
-    // processTokens(wordWeights, doc.description, ngramMax);
+    processTokens(wordWeights, doc.description, ngramMax);
   }
 
+  // once tallying is complete, compute final score
   for (let i in wordWeights) {
     wordWeights[i].score = calculateTopicWeight(wordWeights[i]);
   }
 
+  // sort all trends by their final scores
   let gramsSorted = Object.keys(wordWeights).sort((a, b) => {
     return wordWeights[a].score - wordWeights[b].score;
   });
 
+  // populate top X trends, eliminating potential duplicates
   while (ntrends > 0 && gramsSorted.length > 0) {
     let gram = gramsSorted.pop();
 

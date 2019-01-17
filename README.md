@@ -9,6 +9,8 @@ that this probably made much more cruft than was needed for the assignment
 task. Cleaned up as much of it as possible, but the file layout for `bin/www`
 and `app.js` feels a bit odd to me.
 
+Pretty much all the heavy lifting in the app is in `helpers/transmogrifier.js`.
+
 ## On topic detection
 
 This prompt reminds me how much fun text search and retrieval was as an
@@ -50,4 +52,27 @@ Glancing through the raw feeds, I see a few features in the input data:
 * The two main input points that seem good for feature detection are
   `/item/title` and `/item/description`. Having never read the RSS spec,
   I would bet that these two are some of the few required RSS document tags :-)
+
+
+
+# Running the project
+
+Assuming a node and npm installation, the project should be straightforward:
+
+```sh
+npm i && npm start
+
+# To enable debug logging:
+DEBUG=* node bin/www
+
+```
+
+Test a running server (with default configuration):
+```sh
+curl -v http://localhost:8888/trending | python -m json.tool
+
+#Skip the pipe if you don't have python installed
+curl -v http://localhost:8888/trending
+
+```
 
