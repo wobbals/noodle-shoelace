@@ -1,0 +1,19 @@
+{
+  "name": "noodle-shoelace",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "config": "^3.0.1",
+    "debug": "^2.6.9",
+    "express": "^4.15.5",
+    "jade": "~1.11.0",
+    "js-yaml": "^3.12.1",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.5",
+    "wink-nlp-utils": "^2.0.3",
+    "xml-js": "^1.6.9"
+  }
+}

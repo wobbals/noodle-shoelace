@@ -1,0 +1,6 @@
+bind_port: 8888
+feed_urls:
+  - http://feeds.foxnews.com/foxnews/latest
+  - http://rss.cnn.com/rss/cnn_topstories.rss
+  - http://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml
+number_trends: 5
